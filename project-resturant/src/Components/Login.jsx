@@ -17,7 +17,7 @@ const Login = ({ setPage }) => {
     if ((identifier === username || identifier === email) && password === storedPassword) {
       setMessage('Login Successful!');
       setTimeout(() => {
-        setPage('home');  
+        setPage('Home');  
       }, 1500);
     } else {
       setMessage('Invalid details. Please try again.');
