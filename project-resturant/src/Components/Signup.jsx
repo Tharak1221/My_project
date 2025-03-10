@@ -23,31 +23,31 @@ const Signup = () => {
  
   const handleSignup = (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      alert('Passwords do not match!');
-      return;
-    }
+    // if (password !== confirmPassword) {
+    //   alert('Passwords do not match!');
+    //   return;
+    // }
    
-    if (!usernameRegex.test(username)) {
-      alert('Username must be 8-16 characters long, alphanumeric (with "-" or "_" allowed in the middle), and cannot start or end with a special character.');
-      return;
-    }
+    // if (!usernameRegex.test(username)) {
+    //   alert('Username must be 8-16 characters long, alphanumeric (with "-" or "_" allowed in the middle), and cannot start or end with a special character.');
+    //   return;
+    // }
    
-    if (!emailRegex.test(email)) {
-      alert('Please enter a valid email address.');
-      return;
-    }
+    // if (!emailRegex.test(email)) {
+    //   alert('Please enter a valid email address.');
+    //   return;
+    // }
    
-    if (!passwordRegex.test(password)) {
-      alert('Password must be 8-16 characters long, include at least one capital letter, one number, and one special character.');
-      return;
-    }
+    // if (!passwordRegex.test(password)) {
+    //   alert('Password must be 8-16 characters long, include at least one capital letter, one number, and one special character.');
+    //   return;
+    // }
    
-    // Validate phone number
-    if (!phoneRegex.test(phone)) {
-      alert('Please enter a valid Indian phone number (e.g., +919876543210 or 9876543210).');
-      return;
-    }
+    // // Validate phone number
+    // if (!phoneRegex.test(phone)) {
+    //   alert('Please enter a valid Indian phone number (e.g., +919876543210 or 9876543210).');
+    //   return;
+    // }
    
     // If validations pass, store user details in localStorage
     const userDetails = { name, username, email, password, phone };
