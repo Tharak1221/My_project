@@ -19,6 +19,13 @@ const Signup = ({ setPage }) => {
       return;
     }
 
+    // ✅ Store user details in localStorage
+    localStorage.setItem('userDetails', JSON.stringify({
+      username,
+      email,
+      password, // Ensure password is stored correctly
+    }));
+
     setMessage('Signup Successful! Redirecting to login...');
     
     setTimeout(() => setPage('login'), 2000);
@@ -43,7 +50,7 @@ const Signup = ({ setPage }) => {
         </div>
 
         <div className="mb-3">
-        <label className="form-label">Email</label>
+          <label className="form-label">Email</label>
           <input type="email" className="form-control" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
 

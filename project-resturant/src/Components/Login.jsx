@@ -9,15 +9,23 @@ const Login = ({ setPage }) => {
   const handleLogin = (e) => {
     e.preventDefault();
     const storedData = localStorage.getItem('userDetails');
+
     if (!storedData) {
       setMessage('No user found. Please sign up first.');
       return;
     }
+
     const { username, email, password: storedPassword } = JSON.parse(storedData);
-    if ((identifier === username || identifier === email) && password === storedPassword) {
+
+    // Trim spaces and use lowercase to avoid case issues
+    if (
+      (identifier.trim().toLowerCase() === username.toLowerCase() ||
+       identifier.trim().toLowerCase() === email.toLowerCase()) &&
+      password === storedPassword
+    ) {
       setMessage('Login Successful!');
       setTimeout(() => {
-        setPage('Home');  
+        setPage('home');  // 🔥 Make sure this matches the App.jsx state value
       }, 1500);
     } else {
       setMessage('Invalid details. Please try again.');
@@ -27,9 +35,9 @@ const Login = ({ setPage }) => {
   return (
     <div className="container" style={{ maxWidth: '400px', marginTop: '50px' }}>
       <h2 className="mb-4">Login</h2>
-      <form onSubmit={handleLogin}>
-      <div className="mb-3">
-      <label className="form-label">Username or Email</label>
+      <form onSubmit={handleLogin} className="p-3 border rounded shadow bg-white">
+        <div className="mb-3">
+          <label className="form-label">Username or Email</label>
           <input
             type="text"
             className="form-control"
