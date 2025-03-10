@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { Button } from 'react-bootstrap';
- 
-const Login = () => {
+
+const Login = ({ setPage }) => {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-  const navigate = useNavigate();
- 
+
   const handleLogin = (e) => {
     e.preventDefault();
     const storedData = localStorage.getItem('userDetails');
@@ -19,13 +17,13 @@ const Login = () => {
     if ((identifier === username || identifier === email) && password === storedPassword) {
       setMessage('Login Successful!');
       setTimeout(() => {
-        navigate('/home');  
+        setPage('home');  
       }, 1500);
     } else {
       setMessage('Invalid details. Please try again.');
     }
   };
- 
+
   return (
     <div className="container" style={{ maxWidth: '400px', marginTop: '50px' }}>
       <h2 className="mb-4">Login</h2>
@@ -58,10 +56,10 @@ const Login = () => {
         </div>
       )}
       <p className="mt-3">
-        Don't have an account? <Link to="/">Sign Up</Link>
+        Don't have an account? <span style={{ color: 'blue', cursor: 'pointer' }} onClick={() => setPage('signup')}>Sign Up</span>
       </p>
     </div>
   );
 };
- 
+
 export default Login;

@@ -1,47 +1,29 @@
-// import logo from './logo.svg';
-// import './App.css';
-
-// function App() {
-//   return (
-//     <div className="App">
-//       <header className="App-header">
-//         <img src={logo} className="App-logo" alt="logo" />
-//         <p>
-//           Edit <code>src/App.js</code> and save to reload.
-//         </p>
-//         <a
-//           className="App-link"
-//           href="https://reactjs.org"
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           Learn React
-//         </a>
-//       </header>
-//     </div>
-//   );
-// }
-
-// export default App;
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-//import { Routes, Route,Router } from 'react-router-dom';
+import { useState } from 'react';
 import Signup from './Components/Signup';
 import Login from './Components/Login';
-import HomePage from './Components/Home';
+import Home from './Components/Home';
 
- 
-function App() {
+const App = () => {
+  const [page, setPage] = useState('signup'); // Start with Signup
+
+  const renderPage = () => {
+    switch (page) {
+      case 'signup':
+        return <Signup setPage={setPage} />;
+      case 'login':
+        return <Login setPage={setPage} />;
+      case 'home':
+        return <Home setPage={setPage} />;
+      default:
+        return <Signup setPage={setPage} />;
+    }
+  };
+
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Signup />} />
-        <Route path="/Login" element={<Login />} />
-        <Route path="/Home" element={<HomePage />} />
-      </Routes>
-    </Router>
+    <div style={{ textAlign: 'center', padding: '20px', minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
+      {renderPage()}
+    </div>
   );
-}
- 
+};
+
 export default App;
- 
