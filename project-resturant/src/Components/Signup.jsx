@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const Signup = ({ setPage }) => {  // Accept setPage as a prop
+const Signup = ({ setPage }) => {  
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -19,29 +19,55 @@ const Signup = ({ setPage }) => {  // Accept setPage as a prop
       return;
     }
 
-    // Simulate successful signup
     setMessage('Signup Successful! Redirecting to login...');
     
-    setTimeout(() => setPage('login'), 2000); // Navigate to login
+    setTimeout(() => setPage('login'), 2000);
   };
 
   return (
-    <div>
-      <h2>Signup</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {message && <p style={{ color: 'green' }}>{message}</p>}
+    <div className="container" style={{ maxWidth: '400px', marginTop: '50px' }}>
+      <h2 className="mb-4 text-center">Sign Up</h2>
       
-      <form onSubmit={handleSignup}>
-        <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required />
-        <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
-        <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-        <input type="tel" placeholder="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} required />
-        <button type="submit">Sign Up</button>
+      {error && <div className="alert alert-danger">{error}</div>}
+      {message && <div className="alert alert-success">{message}</div>}
+
+      <form onSubmit={handleSignup} className="p-3 border rounded shadow bg-white">
+        <div className="mb-3">
+          <label className="form-label">Name:</label>
+          <input type="text" className="form-control" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} required />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Username</label>
+          <input type="text" className="form-control" placeholder="Enter your username" value={username} onChange={(e) => setUsername(e.target.value)} required />
+        </div>
+
+        <div className="mb-3">
+        <label className="form-label">Email</label>
+          <input type="email" className="form-control" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Password</label>
+          <input type="password" className="form-control" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Confirm Password</label>
+          <input type="password" className="form-control" placeholder="Re-enter your password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
+        </div>
+
+        <div className="mb-3">
+          <label className="form-label">Phone Number</label>
+          <input type="tel" className="form-control" placeholder="Enter your phone number" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+        </div>
+
+        <button type="submit" className="btn btn-success w-100">Sign Up</button>
       </form>
 
-      <p>Already have an account? <button onClick={() => setPage('login')}>Login</button></p>
+      <p className="mt-3 text-center">
+        Already have an account? <button className="btn btn-link p-0" onClick={() => setPage('login')}>Login</button>
+      </p>
     </div>
   );
 };

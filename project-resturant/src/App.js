@@ -4,7 +4,7 @@ import Login from './Components/Login';
 import Home from './Components/Home';
 
 const App = () => {
-  const [page, setPage] = useState('signup'); // Start with Signup
+  const [page, setPage] = useState('signup'); 
 
   const renderPage = () => {
     switch (page) {

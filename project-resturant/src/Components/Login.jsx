@@ -28,8 +28,8 @@ const Login = ({ setPage }) => {
     <div className="container" style={{ maxWidth: '400px', marginTop: '50px' }}>
       <h2 className="mb-4">Login</h2>
       <form onSubmit={handleLogin}>
-        <div className="mb-3">
-          <label className="form-label">Username or Email</label>
+      <div className="mb-3">
+      <label className="form-label">Username or Email</label>
           <input
             type="text"
             className="form-control"
