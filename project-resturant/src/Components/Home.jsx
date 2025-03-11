@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Navbar, Nav, Container, Col, Card, Button, Form } from 'react-bootstrap';
+import { Navbar, Nav, Container, Col, Button, Form } from 'react-bootstrap';
 import { FaPizzaSlice, FaHamburger, FaFish, FaDrumstickBite, FaIceCream, FaMugHot } from 'react-icons/fa';
 
 const Home = ({ setPage }) => {
@@ -19,10 +19,10 @@ const Home = ({ setPage }) => {
 
   return (
     <>
-      
+      {/* Navbar */}
       <Navbar bg="dark" variant="dark" expand="lg">
         <Container>
-          <Navbar.Brand style={{ fontWeight: "bold", color: "White", fontSize: "1.5rem",backgroundColor:"darkblue" }}>SR Restaurant</Navbar.Brand>
+          <Navbar.Brand style={{ fontWeight: "bold", color: "White", fontSize: "1.5rem", backgroundColor: "darkblue" }}>SR Restaurant</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto">
@@ -61,33 +61,31 @@ const Home = ({ setPage }) => {
         <Col md={10} className="p-4">
           <h1 className="text-center mb-4">{selectedSection}</h1>
 
-          {/* Food Menu Section */}
+          {/* Food Menu Section (Without Card) */}
           {selectedSection === "Food Menu" && (
-            <Card>
-              <Card.Body>
-                <Card.Title>Food Menu</Card.Title>
-                <div>
-                  {[  
-                    { icon: <FaPizzaSlice />, name: "Pizza" },
-                    { icon: <FaHamburger />, name: "Burgers" },
-                    { icon: <FaFish />, name: "Seafood" },
-                    { icon: <FaDrumstickBite />, name: "Chicken Dishes" },
-                    { icon: <FaIceCream />, name: "Desserts" },
-                    { icon: <FaMugHot />, name: "Beverages" }
-                  ].map((item) => (
-                    <div key={item.name} className="mb-2">
-                      <input 
-                        type="radio" 
-                        name="food" 
-                        value={item.name} 
-                        checked={selectedFood === item.name} 
-                        onChange={handleFoodSelection} 
-                      /> {item.icon} {item.name}
-                    </div>
-                  ))}
-                </div>
-              </Card.Body>
-            </Card>
+            <div className="p-4 border rounded bg-light">
+              <h3>Food Menu</h3>
+              <div>
+                {[
+                  { icon: <FaPizzaSlice />, name: "Pizza" },
+                  { icon: <FaHamburger />, name: "Burgers" },
+                  { icon: <FaFish />, name: "Seafood" },
+                  { icon: <FaDrumstickBite />, name: "Chicken Dishes" },
+                  { icon: <FaIceCream />, name: "Desserts" },
+                  { icon: <FaMugHot />, name: "Beverages" }
+                ].map((item) => (
+                  <div key={item.name} className="mb-2">
+                    <input 
+                      type="radio" 
+                      name="food" 
+                      value={item.name} 
+                      checked={selectedFood === item.name} 
+                      onChange={handleFoodSelection} 
+                    /> {item.icon} {item.name}
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </Col>
       </Container>
