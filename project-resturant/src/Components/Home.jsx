@@ -5,7 +5,7 @@ import { FaPizzaSlice, FaHamburger, FaFish, FaDrumstickBite, FaIceCream, FaMugHo
 const Home = ({ setPage }) => {
   const [selectedSection, setSelectedSection] = useState("Restaurant Details");
   const [selectedFood, setSelectedFood] = useState("");
-  const [showMenu, setShowMenu] = useState(false);
+  const [Menu, setMenu] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
@@ -19,10 +19,10 @@ const Home = ({ setPage }) => {
 
   return (
     <>
-      {/* Navbar */}
+      
       <Navbar bg="dark" variant="dark" expand="lg">
         <Container>
-          <Navbar.Brand style={{ fontWeight: "bold", color: "White", fontSize: "1.5rem" }}>SR Restaurant</Navbar.Brand>
+          <Navbar.Brand style={{ fontWeight: "bold", color: "White", fontSize: "1.5rem",backgroundColor:"darkblue" }}>SR Restaurant</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto">
@@ -36,10 +36,10 @@ const Home = ({ setPage }) => {
       <Container fluid className="mt-4 d-flex">
         {/* Sidebar */}
         <Col md={2} className="bg-light p-3 border-end">
-          <Button variant="primary" className="w-100 mb-3" onClick={() => setShowMenu(!showMenu)}>
-            {showMenu ? "Hide Menu" : "Show Menu"}
+          <Button variant="primary" className="w-100 mb-3" onClick={() => setMenu(!Menu)}>
+            {Menu ? "Hide Menu" : "Menu"}
           </Button>
-          {showMenu && (
+          {Menu && (
             <Form>
               <ul className="list-unstyled">
                 {["Restaurant Details", "Order Management", "Menu Management", "Food Menu"].map((option) => (

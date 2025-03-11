@@ -1,0 +1,36 @@
+.input-error {
+    border-color: red !important; 
+    color: red !important; 
+  }
+  
+  .input-error::placeholder {
+    color: red !important; 
+    opacity: 1; 
+  }
+  
+  
+  .tooltip-error {
+    position: absolute;
+    background-color: red;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    top: -30px; 
+    left: 10px;
+    white-space: nowrap;
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  .tooltip-error::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 10px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: red transparent transparent transparent; 
+  }
+  

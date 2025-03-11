@@ -1,79 +1,127 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import "./Main.css"; 
 
-const Signup = ({ setPage }) => {  
-  const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [phone, setPhone] = useState('');
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+const Signup = ({ setPage }) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+  });
+
+  const [errors, setErrors] = useState({}); // Holds validation errors
+  const [touched, setTouched] = useState({}); // Tracks if field has been interacted with
+  const [showTooltip, setShowTooltip] = useState({}); // Controls tooltip visibility
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+
+    // Remove error when user types
+    setErrors({ ...errors, [e.target.name]: "" });
+  };
+
+  const handleBlur = (e) => {
+    setTouched({ ...touched, [e.target.name]: true }); // Mark field as touched
+  };
+
+  const handleMouseEnter = (field) => {
+    if (errors[field]) {
+      setShowTooltip({ ...showTooltip, [field]: true }); // Show tooltip if there's an error
+    }
+  };
+
+  const handleMouseLeave = (field) => {
+    setShowTooltip({ ...showTooltip, [field]: false }); // Hide tooltip
+  };
+
+  const validate = () => {
+    let newErrors = {};
+
+    if (!formData.name) newErrors.name = "Name is required";
+    if (!formData.username) newErrors.username = "Username is required";
+    if (!/^[a-zA-Z0-9]+([._%+-]?[a-zA-Z0-9]+)*@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+    
+    if (formData.password.length < 6)
+      newErrors.password = "Password must be at least 6 characters";
+    if (formData.password !== formData.confirmPassword)
+      newErrors.confirmPassword = "Passwords do not match";
+    if (!/^[6-9]\d{9}$/.test(formData.phone))
+      newErrors.phone = "Phone number must start with 6-9 and be 10 digits";
+    
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSignup = (e) => {
     e.preventDefault();
-    setError('');
+    if (!validate()) return; // Stop if validation fails
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match!');
-      return;
-    }
+    localStorage.setItem(
+      "userDetails",
+      JSON.stringify({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      })
+    );
 
-    // ✅ Store user details in localStorage
-    localStorage.setItem('userDetails', JSON.stringify({
-      username,
-      email,
-      password, // Ensure password is stored correctly
-    }));
-
-    setMessage('Signup Successful! Redirecting to login...');
-    
-    setTimeout(() => setPage('login'), 2000);
+    setTimeout(() => setPage("login"), 2000);
   };
 
   return (
-    <div className="container" style={{ maxWidth: '400px', marginTop: '50px' }}>
+    <div className="container" style={{ maxWidth: "400px", marginTop: "50px" }}>
       <h2 className="mb-4 text-center">Sign Up</h2>
-      
-      {error && <div className="alert alert-danger">{error}</div>}
-      {message && <div className="alert alert-success">{message}</div>}
 
-      <form onSubmit={handleSignup} className="p-3 border rounded shadow bg-white">
-        <div className="mb-3">
-          <label className="form-label">Name:</label>
-          <input type="text" className="form-control" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} required />
-        </div>
+      <form
+        onSubmit={handleSignup}
+        className="p-3 border rounded shadow bg-white"
+      >
+        {[
+          { label: "Name", name: "name", type: "text" },
+          { label: "Username", name: "username", type: "text" },
+          { label: "Email", name: "email", type: "email" },
+          { label: "Password", name: "password", type: "password" },
+          { label: "Confirm Password", name: "confirmPassword", type: "password" },
+          { label: "Phone Number", name: "phone", type: "tel" },
+        ].map(({ label, name, type }) => (
+          <div className="mb-3 position-relative" key={name}>
+            <label className="form-label">{label}</label>
 
-        <div className="mb-3">
-          <label className="form-label">Username</label>
-          <input type="text" className="form-control" placeholder="Enter your username" value={username} onChange={(e) => setUsername(e.target.value)} required />
-        </div>
+            
+            <input
+              type={type}
+              name={name}
+              className={`form-control ${errors[name] && touched[name] ? "input-error" : ""}`} // Apply red border if error
+              placeholder={touched[name] && errors[name] ? errors[name] : `Enter your ${label.toLowerCase()}`} // Show error inside input
+              value={formData[name]}
+              onChange={handleChange}
+              onBlur={handleBlur}       
+              onMouseEnter={() => handleMouseEnter(name)} 
+              onMouseLeave={() => handleMouseLeave(name)} 
+            />
 
-        <div className="mb-3">
-          <label className="form-label">Email</label>
-          <input type="email" className="form-control" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
+           
+            {showTooltip[name] && errors[name] && (
+              <div className="tooltip-error">{errors[name]}</div>
+            )}
+          </div>
+        ))}
 
-        <div className="mb-3">
-          <label className="form-label">Password</label>
-          <input type="password" className="form-control" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label">Confirm Password</label>
-          <input type="password" className="form-control" placeholder="Re-enter your password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
-        </div>
-
-        <div className="mb-3">
-          <label className="form-label">Phone Number</label>
-          <input type="tel" className="form-control" placeholder="Enter your phone number" value={phone} onChange={(e) => setPhone(e.target.value)} required />
-        </div>
-
-        <button type="submit" className="btn btn-success w-100">Sign Up</button>
+        <button type="submit" className="btn btn-success w-100">
+          Sign Up
+        </button>
       </form>
 
       <p className="mt-3 text-center">
-        Already have an account? <button className="btn btn-link p-0" onClick={() => setPage('login')}>Login</button>
+        Already have an account?{" "}
+        <button className="btn btn-link p-0" onClick={() => setPage("login")}>
+          Login
+        </button>
       </p>
     </div>
   );
