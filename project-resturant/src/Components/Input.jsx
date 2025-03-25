@@ -1,6 +1,6 @@
 import React from "react";
 
-const Prop = ({
+const Input = ({
   label,
   type,
   name,
@@ -9,7 +9,7 @@ const Prop = ({
   error,
   touched,
   onChange,
-  onBlur,
+  onBlur
 }) => {
   return (
     <div className="mb-3 position-relative">
@@ -17,15 +17,15 @@ const Prop = ({
       <input
         type={type}
         name={name}
-        className={`form-control ${error && touched ? "input-error" : ""}`}
+        className={`form-control ${error ? "input-error" : ""}`}
         placeholder={touched && error ? error : placeholder}
         value={value}
         onChange={onChange}
-        onBlur={onBlur}
+        onBlur={onBlur} 
       />
       {touched && error && <div className="tooltip-error">{error}</div>}
     </div>
   );
 };
 
-export default Prop;
+export default Input;

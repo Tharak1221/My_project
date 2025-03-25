@@ -1,16 +1,45 @@
-import React, { useState } from 'react';
-import { Navbar, Nav, Container, Col, Button, Form } from 'react-bootstrap';
-import { FaPizzaSlice, FaHamburger, FaFish, FaDrumstickBite, FaIceCream, FaMugHot } from 'react-icons/fa';
+
+import React, { useState, useEffect } from "react";
+import { Navbar, Nav, Container, Col, Button, Form } from "react-bootstrap";
+import { FaPizzaSlice, FaHamburger, FaFish, FaDrumstickBite, FaIceCream, FaMugHot } from "react-icons/fa";
 
 const Home = ({ setPage }) => {
   const [selectedSection, setSelectedSection] = useState("Restaurant Details");
   const [selectedFood, setSelectedFood] = useState("");
   const [Menu, setMenu] = useState(false);
+  const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [stats, setStats] = useState({ users: 0, orders: 0 });
+  const [search, setSearch] = useState("");
+
+
+  useEffect(() => {
+    fetch("http://localhost:5000/userdetails")
+      .then((response) => response.json())
+      .then((data) => setUser(data[0])) 
+      .catch((error) => console.error("Error fetching user details:", error));
+  }, []);
+
+  
+  useEffect(() => {
+    fetch("http://localhost:5000/orders")
+      .then((response) => response.json())
+      .then((data) => setOrders(data))
+      .catch((error) => console.error("Error fetching orders:", error));
+  }, []);
+// Fetch orders from backend
+  // Fetch admin stats
+  useEffect(() => {
+    fetch("http://localhost:5000/admin-stats")
+      .then((response) => response.json())
+      .then((data) => setStats(data))
+      .catch((error) => console.error("Error fetching stats:", error));
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     sessionStorage.removeItem("authToken");
-    setPage("login"); 
+    setPage("login");
   };
 
   const handleFoodSelection = (event) => {
@@ -22,11 +51,16 @@ const Home = ({ setPage }) => {
       {/* Navbar */}
       <Navbar bg="dark" variant="dark" expand="lg">
         <Container>
-          <Navbar.Brand style={{ fontWeight: "bold", color: "White", fontSize: "1.5rem", backgroundColor: "darkblue" }}>SR Restaurant</Navbar.Brand>
+          <Navbar.Brand style={{ fontWeight: "bold", color: "White", fontSize: "1.5rem", backgroundColor: "darkblue" }}>
+             Restaurant
+          </Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto">
-              <Button variant="link" className="nav-link text-light" onClick={handleLogout}>Logout</Button>
+              {user && <span className="text-light mx-3">Welcome, {user.name}!</span>}
+              <Button variant="link" className="nav-link text-light" onClick={handleLogout}>
+                Logout
+              </Button>
             </Nav>
           </Navbar.Collapse>
         </Container>
@@ -44,12 +78,7 @@ const Home = ({ setPage }) => {
               <ul className="list-unstyled">
                 {["Restaurant Details", "Order Management", "Menu Management", "Food Menu"].map((option) => (
                   <li key={option}>
-                    <input
-                      type="radio"
-                      name="menu-options"
-                      checked={selectedSection === option}
-                      onChange={() => setSelectedSection(option)}
-                    /> {option}
+                    <input type="radio" name="menu-options" checked={selectedSection === option} onChange={() => setSelectedSection(option)} /> {option}
                   </li>
                 ))}
               </ul>
@@ -61,10 +90,40 @@ const Home = ({ setPage }) => {
         <Col md={10} className="p-4">
           <h1 className="text-center mb-4">{selectedSection}</h1>
 
-          {/* Food Menu Section (Without Card) */}
+          {/* Order Management Section */}
+          {selectedSection === "Order Management" && (
+            <div className="p-4 border rounded bg-light">
+              <h3>Recent Orders</h3>
+              <ul>
+                {orders.map((order, index) => (
+                  <li key={index}>
+                    {order.customer} - {order.foodItem} - {order.status}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Admin Dashboard Section */}
+          {selectedSection === "Menu Management" && (
+            <div className="p-4 border rounded bg-light">
+              <h3>Admin Dashboard</h3>
+              <p>Total Users: {stats.users}</p>
+              <p>Total Orders: {stats.orders}</p>
+            </div>
+          )}
+
+          {/* Food Menu Section */}
           {selectedSection === "Food Menu" && (
             <div className="p-4 border rounded bg-light">
               <h3>Food Menu</h3>
+              <input
+                type="text"
+                placeholder="Search food..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="form-control mb-3"
+              />
               <div>
                 {[
                   { icon: <FaPizzaSlice />, name: "Pizza" },
@@ -72,18 +131,14 @@ const Home = ({ setPage }) => {
                   { icon: <FaFish />, name: "Seafood" },
                   { icon: <FaDrumstickBite />, name: "Chicken Dishes" },
                   { icon: <FaIceCream />, name: "Desserts" },
-                  { icon: <FaMugHot />, name: "Beverages" }
-                ].map((item) => (
-                  <div key={item.name} className="mb-2">
-                    <input 
-                      type="radio" 
-                      name="food" 
-                      value={item.name} 
-                      checked={selectedFood === item.name} 
-                      onChange={handleFoodSelection} 
-                    /> {item.icon} {item.name}
-                  </div>
-                ))}
+                  { icon: <FaMugHot />, name: "Beverages" },
+                ]
+                  .filter((item) => item.name.toLowerCase().includes(search.toLowerCase()))
+                  .map((item) => (
+                    <div key={item.name} className="mb-2">
+                      <input type="radio" name="food" value={item.name} checked={selectedFood === item.name} onChange={handleFoodSelection} /> {item.icon} {item.name}
+                    </div>
+                  ))}
               </div>
             </div>
           )}

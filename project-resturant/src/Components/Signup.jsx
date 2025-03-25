@@ -1,5 +1,7 @@
-import React, { useState } from "react";
-import "./Main.css";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import Input from "./Input";
+import { validations } from "./validations";
 
 const Signup = ({ setPage }) => {
   const [formData, setFormData] = useState({
@@ -11,35 +13,68 @@ const Signup = ({ setPage }) => {
     phone: "",
   });
 
+  useEffect(() => {
+    axios.get("http://localhost:5000/userdetails")
+      .then(response => {
+        console.log("Fetched data:", response.data);
+      })
+      .catch(error => {
+        console.error("Error fetching data:", error);
+      });
+  }, []);
+  
+
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
-  const [showTooltip, setShowTooltip] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    setErrors({ ...errors, [e.target.name]: "" });
+  const validateField = (name, value) => {
+    if (validations[name]) {
+      const validationResult =
+        name === "confirmPassword"
+          ? validations[name](formData.password, value)
+          : validations[name](value);
+      return validationResult.isValid ? "" : validationResult.message;
+    }
+    return "";
   };
 
-  const validate = () => {
-    let newErrors = {};
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
 
-    if (!formData.name) newErrors.name = "Name is required";
-    if (!formData.username) newErrors.username = "Username is required";
-    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
-      newErrors.email = "Invalid email format";
+    if (touched[name]) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [name]: validateField(name, value),
+      }));
     }
-    if (formData.password.length < 6) newErrors.password = "Password must be at least 6 characters";
-    if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = "Passwords do not match";
-    if (!/^[6-9]\d{9}$/.test(formData.phone)) newErrors.phone = "Phone number must start with 6-9 and be 10 digits";
+  };
 
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched({ ...touched, [name]: true });
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: validateField(name, value),
+    }));
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    Object.entries(formData).forEach(([key, value]) => {
+      const error = validateField(key, value);
+      if (error) newErrors[key] = error;
+    });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSignup = (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validateForm()) return;
 
+    setIsSubmitting(true);
     localStorage.setItem(
       "userDetails",
       JSON.stringify({
@@ -49,13 +84,14 @@ const Signup = ({ setPage }) => {
       })
     );
 
-    setTimeout(() => setPage("login"), 2000);
+    console.log("Navigating to login...");
+    setIsSubmitting(false);
+    setPage("login");
   };
 
   return (
     <div className="container" style={{ maxWidth: "400px", marginTop: "50px" }}>
       <h2 className="mb-4 text-center">Sign Up</h2>
-
       <form onSubmit={handleSignup} className="p-3 border rounded shadow bg-white">
         {[
           { name: "name", type: "text", placeholder: "Full Name" },
@@ -65,28 +101,27 @@ const Signup = ({ setPage }) => {
           { name: "confirmPassword", type: "password", placeholder: "Confirm Password" },
           { name: "phone", type: "tel", placeholder: "Phone Number" },
         ].map(({ name, type, placeholder }) => (
-          <div className="mb-3 position-relative" key={name}>
-            <input
+          <div key={name} className="mb-1">
+            <Input
               type={type}
               name={name}
-              className={`form-control ${errors[name] && touched[name] ? "input-error" : ""}`}
-              placeholder={touched[name] && errors[name] ? errors[name] : placeholder}
               value={formData[name]}
+              placeholder={placeholder}
+              error={errors[name]}
               onChange={handleChange}
-              onBlur={() => setTouched({ ...touched, [name]: true })}
-              onMouseEnter={() => setShowTooltip({ ...showTooltip, [name]: true })}
-              onMouseLeave={() => setShowTooltip({ ...showTooltip, [name]: false })}
+              onBlur={handleBlur}
             />
-            {showTooltip[name] && errors[name] && <div className="tooltip-error">{errors[name]}</div>}
           </div>
         ))}
-
-        <button type="submit" className="btn btn-success w-100">Sign Up</button>
+        <button type="submit" className="btn btn-success w-100" disabled={isSubmitting}>
+          {isSubmitting ? "Signing Up..." : "Sign Up"}
+        </button>
       </form>
-
       <p className="mt-3 text-center">
-        Already have an account?{" "}
-        <button className="btn btn-link p-0" onClick={() => setPage("login")}>Login</button>
+        Already have an account?{' '}
+        <button className="btn btn-link p-0 align-baseline" onClick={() => setPage("login")}>
+          Login
+        </button>
       </p>
     </div>
   );
