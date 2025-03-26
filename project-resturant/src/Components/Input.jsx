@@ -1,31 +1,22 @@
 import React from "react";
-
-const Input = ({
-  label,
-  type,
-  name,
-  value,
-  placeholder,
-  error,
-  touched,
-  onChange,
-  onBlur
-}) => {
+import "bootstrap/dist/css/bootstrap.min.css";
+ 
+const Input = ({ type, name, value, placeholder, onChange, onBlur, error }) => {
   return (
-    <div className="mb-3 position-relative">
-      <label className="form-label">{label}</label>
+    <div className="mb-3">
       <input
         type={type}
         name={name}
-        className={`form-control ${error ? "input-error" : ""}`}
-        placeholder={touched && error ? error : placeholder}
         value={value}
+        placeholder={placeholder}
         onChange={onChange}
-        onBlur={onBlur} 
+        onBlur={onBlur}
+        className={`form-control ${error ? "is-invalid" : ""}`}
       />
-      {touched && error && <div className="tooltip-error">{error}</div>}
+      {error && <div className="invalid-feedback">{error}</div>}
     </div>
   );
 };
-
+ 
 export default Input;
+ 

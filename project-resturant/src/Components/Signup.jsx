@@ -22,7 +22,6 @@ const Signup = ({ setPage }) => {
         console.error("Error fetching data:", error);
       });
   }, []);
-  
 
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -66,27 +65,32 @@ const Signup = ({ setPage }) => {
       const error = validateField(key, value);
       if (error) newErrors[key] = error;
     });
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    localStorage.setItem(
-      "userDetails",
-      JSON.stringify({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      })
-    );
 
-    console.log("Navigating to login...");
-    setIsSubmitting(false);
-    setPage("login");
+    try {
+      const { confirmPassword, ...signupData } = formData;
+      const response = await axios.post("http://localhost:5000/api/signup", signupData);
+
+      alert(response.data.message);
+      setPage("login");
+    } catch (error) {
+      console.error("Error signing up:", error.response?.data?.message || "Signup failed");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -122,7 +126,7 @@ const Signup = ({ setPage }) => {
         <button className="btn btn-link p-0 align-baseline" onClick={() => setPage("login")}>
           Login
         </button>
-      </p>
+      </p> 
     </div>
   );
 };

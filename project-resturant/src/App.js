@@ -1,29 +1,18 @@
-import { useState } from 'react';
-import Signup from './Components/Signup';
-import Login from './Components/Login';
-import Home from './Components/Home';
+import React, { useState } from "react";
+import Signup from "./Components/Signup";
+import Login from "./Components/Login";
+import Home from "./Components/Home";
 
-const App = () => {
-  const [page, setPage] = useState('home'); 
-
-  const renderPage = () => {
-    switch (page) {
-      case 'signup':
-        return <Signup setPage={setPage} />;
-      case 'login':
-        return <Login setPage={setPage} />;
-      case 'home':
-        return <Home setPage={setPage} />;
-      default:
-        return <Signup setPage={setPage} />;
-    }
-  };
+function App() {
+  const [page, setPage] = useState("home");
 
   return (
-    <div style={{ textAlign: 'center', padding: '20px', minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
-      {renderPage()}
+    <div className="container">
+      {page === "signup" && <Signup setPage={setPage} />}
+      {page === "login" && <Login setPage={setPage} />}
+      {page === "home" && <Home />}
     </div>
   );
-};
+}
 
 export default App;
