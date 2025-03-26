@@ -4,13 +4,16 @@ import Login from "./Components/Login";
 import Home from "./Components/Home";
 
 function App() {
-  const [page, setPage] = useState("home");
+  const [page, setPage] = useState("login");
+  const [user, setUser] = useState(null);
+
+  console.log("Current Page:", page);
 
   return (
     <div className="container">
       {page === "signup" && <Signup setPage={setPage} />}
-      {page === "login" && <Login setPage={setPage} />}
-      {page === "home" && <Home />}
+      {page === "login" && <Login setPage={setPage} setUser={setUser} />}
+      {page === "home" && <Home user={user}  setPage={setPage} />}
     </div>
   );
 }

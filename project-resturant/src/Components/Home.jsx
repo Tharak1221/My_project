@@ -1,68 +1,52 @@
-import React, { useState, useEffect } from "react";
-import { Navbar, Container, Dropdown } from "react-bootstrap";
-import { FaUserCircle } from "react-icons/fa";
 
-const Home = ({ setPage }) => {
-    const [user, setUser] = useState(null);
+import React from "react";
+import { Navbar, Nav, Dropdown, Container, Button } from "react-bootstrap";
+import {  FaUserCircle } from 'react-icons/fa';
 
-    useEffect(() => {
-        const fetchUserDetails = async () => {
-            const token = localStorage.getItem("authToken");
+const Home = ({ user, setPage }) => {
+  const handleLogout = () => {
+    setPage("login");
+     // ✅ Redirect to Login on logout
+  };
 
-            if (!token) {
-                setPage("login");
-                return;
-            }
+  return (
+    <div>
+      {/* ✅ Navigation Bar */}
+      <Navbar bg="dark" variant="dark" expand="lg">
+        <Container>
+          <Navbar.Brand>Restaurant Dashboard</Navbar.Brand>
+          <Nav className="ms-auto">
+            <Dropdown>
 
-            const response = await fetch("http://localhost:5000/userdetails", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+              <Dropdown.Toggle variant="secondary" id="profile-dropdown">
+              <FaUserCircle style={{ marginRight: '8px' }} />{user?.username || "Profile"}           
+              </Dropdown.Toggle>
+              <Dropdown.Menu align="end">
+                <Dropdown.Item disabled><strong>{user?.name}</strong></Dropdown.Item>
+                
+                <Dropdown.Divider />
+                
+                <Dropdown.Item>Username: {user?.username}</Dropdown.Item>
+                <Dropdown.Item>Email: {user?.email}</Dropdown.Item>
+                <Dropdown.Item>Phone: {user?.phone}</Dropdown.Item>
+                <Dropdown.Divider />
+                <Dropdown.Item>
+                  <Button variant="danger" size="sm" onClick={handleLogout}>Logout</Button>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </Nav>
+        </Container>
+      </Navbar>
 
-            const data = await response.json();
-
-            if (data.error) {
-                localStorage.removeItem("authToken");
-                setPage("login");
-            } else {
-                setUser(data);
-            }
-        };
-
-        fetchUserDetails();
-    }, []);
-
-    const handleLogout = () => {
-        localStorage.removeItem("authToken");
-        setPage("login");
-    };
-
-    return (
-        <>
-            <Navbar bg="dark" variant="dark" expand="lg">
-                <Container>
-                    <Navbar.Brand style={{ fontWeight: "bold", color: "White", fontSize: "1.5rem" }}>
-                        Restaurant
-                    </Navbar.Brand>
-                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                    <Navbar.Collapse id="basic-navbar-nav">
-                        {user && (
-                            <Dropdown>
-                                <Dropdown.Toggle variant="dark" id="dropdown-basic" className="d-flex align-items-center">
-                                    <FaUserCircle size={30} className="me-2" />
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu align="end">
-                                    <Dropdown.ItemText><strong>{user.name}</strong></Dropdown.ItemText>
-                                    <Dropdown.ItemText>{user.email}</Dropdown.ItemText>
-                                    <Dropdown.Divider />
-                                    <Dropdown.Item onClick={handleLogout}>Logout</Dropdown.Item>
-                                </Dropdown.Menu>
-                            </Dropdown>
-                        )}
-                    </Navbar.Collapse>
-                </Container>
-            </Navbar>
-        </>
-    );
+      {/* ✅ Dashboard Content */}
+      <Container className="mt-5">
+        <h2>Welcome, {user?.name}!</h2>
+        <p>This is your restaurant management dashboard.</p>
+        {/* Add more dashboard features here */}
+      </Container>
+    </div>
+  );
 };
 
 export default Home;

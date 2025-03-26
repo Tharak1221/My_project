@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import axios from "axios";
 import Input from "./Input";
 import { validations } from "./validations";
@@ -13,52 +13,32 @@ const Signup = ({ setPage }) => {
     phone: "",
   });
 
-  useEffect(() => {
-    axios.get("http://localhost:5000/userdetails")
-      .then(response => {
-        console.log("Fetched data:", response.data);
-      })
-      .catch(error => {
-        console.error("Error fetching data:", error);
-      });
-  }, []);
-
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
 
-  const validateField = (name, value) => {
+  // useEffect(() => {
+  //   axios
+  //     .get("http://localhost:5000/userdetails")
+  //     .then((response) => console.log("Fetched data:", response.data))
+  //     .catch((error) => console.error("Error fetching data:", error));
+  // }, []);
+
+  // Validate a single field
+  const validateField = (name, value, currentFormData = formData) => {
     if (validations[name]) {
       const validationResult =
         name === "confirmPassword"
-          ? validations[name](formData.password, value)
+          ? validations[name](currentFormData.password, value)
           : validations[name](value);
+
       return validationResult.isValid ? "" : validationResult.message;
     }
     return "";
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-
-    if (touched[name]) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [name]: validateField(name, value),
-      }));
-    }
-  };
-
-  const handleBlur = (e) => {
-    const { name, value } = e.target;
-    setTouched({ ...touched, [name]: true });
-    setErrors((prevErrors) => ({
-      ...prevErrors,
-      [name]: validateField(name, value),
-    }));
-  };
-
+  // Validate entire form
   const validateForm = () => {
     const newErrors = {};
     Object.entries(formData).forEach(([key, value]) => {
@@ -66,14 +46,56 @@ const Signup = ({ setPage }) => {
       if (error) newErrors[key] = error;
     });
 
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
     setErrors(newErrors);
+    setTouched((prevTouched) => {
+      const allTouched = {};
+      Object.keys(formData).forEach((key) => {
+        allTouched[key] = true;
+      });
+      return allTouched;
+    });
+
     return Object.keys(newErrors).length === 0;
   };
 
+  // Handle input change (validates in real-time after touched)
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prevData) => {
+      const newData = { ...prevData, [name]: value };
+
+      // Validate field immediately after it was touched
+      if (touched[name]) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: validateField(name, value, newData),
+        }));
+      }
+
+      return newData;
+    });
+
+    setTouched((prevTouched) => ({ ...prevTouched, [name]: true }));
+  };
+
+  // Handle input blur (validates when leaving the field)
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+
+    setTouched((prevTouched) => ({
+      ...prevTouched,
+      [name]: true,
+    }));
+
+    // Validate immediately when the user moves to another field
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: validateField(name, value),
+    }));
+  };
+
+  // Handle form submission
   const handleSignup = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -82,12 +104,18 @@ const Signup = ({ setPage }) => {
 
     try {
       const { confirmPassword, ...signupData } = formData;
-      const response = await axios.post("http://localhost:5000/api/signup", signupData);
+      const response = await axios.post(
+        "http://localhost:5000/api/signup",
+        signupData
+      );
 
       alert(response.data.message);
       setPage("login");
     } catch (error) {
-      console.error("Error signing up:", error.response?.data?.message || "Signup failed");
+      console.error(
+        "Error signing up:",
+        error.response?.data?.message || "Signup failed"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -96,25 +124,39 @@ const Signup = ({ setPage }) => {
   return (
     <div className="container" style={{ maxWidth: "400px", marginTop: "50px" }}>
       <h2 className="mb-4 text-center">Sign Up</h2>
-      <form onSubmit={handleSignup} className="p-3 border rounded shadow bg-white">
+      <form
+        onSubmit={handleSignup}
+        className="p-3 border rounded shadow bg-white"
+      >
         {[
           { name: "name", type: "text", placeholder: "Full Name" },
           { name: "username", type: "text", placeholder: "Username" },
           { name: "email", type: "email", placeholder: "Email Address" },
           { name: "password", type: "password", placeholder: "Password" },
-          { name: "confirmPassword", type: "password", placeholder: "Confirm Password" },
+          {
+            name: "confirmPassword",
+            type: "password",
+            placeholder: "Confirm Password",
+          },
           { name: "phone", type: "tel", placeholder: "Phone Number" },
         ].map(({ name, type, placeholder }) => (
-          <div key={name} className="mb-1">
+          <div key={name} className="mb-2 position-relative">
             <Input
               type={type}
               name={name}
               value={formData[name]}
               placeholder={placeholder}
-              error={errors[name]}
               onChange={handleChange}
               onBlur={handleBlur}
+              className={`form-control ${
+                touched[name] && errors[name] ? "is-invalid" : ""
+              }`}
             />
+            {touched[name] && errors[name] && (
+              <div className="invalid-feedback" style={{ display: "block" }}>
+                {errors[name]}
+              </div>
+            )}
           </div>
         ))}
         <button type="submit" className="btn btn-success w-100" disabled={isSubmitting}>
@@ -122,11 +164,14 @@ const Signup = ({ setPage }) => {
         </button>
       </form>
       <p className="mt-3 text-center">
-        Already have an account?{' '}
-        <button className="btn btn-link p-0 align-baseline" onClick={() => setPage("login")}>
+        Already have an account?{" "}
+        <button
+          className="btn btn-link p-0 align-baseline"
+          onClick={() => setPage("login")}
+        >
           Login
         </button>
-      </p> 
+      </p>
     </div>
   );
 };
