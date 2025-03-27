@@ -364,6 +364,8 @@ const Login = ({ setPage , setUser}) => {
           if (typeof setPage === "function") {
               console.log("Login successful! Navigating to Home Page...");
               setUser(response.data.user); 
+              localStorage.setItem("token", response.data.token); // ✅ Store token
+              setPage(response.data.user);
             setPage("home"); 
           } else {
             console.error("setPage is not a function");
