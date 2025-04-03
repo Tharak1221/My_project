@@ -38,7 +38,7 @@ const Signup = ({ setPage }) => {
     return "";
   };
 
-  // Validate entire form
+  
   const validateForm = () => {
     const newErrors = {};
     Object.entries(formData).forEach(([key, value]) => {
@@ -58,14 +58,14 @@ const Signup = ({ setPage }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle input change (validates in real-time after touched)
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     setFormData((prevData) => {
       const newData = { ...prevData, [name]: value };
 
-      // Validate field immediately after it was touched
+    
       if (touched[name]) {
         setErrors((prevErrors) => ({
           ...prevErrors,
@@ -79,7 +79,7 @@ const Signup = ({ setPage }) => {
     setTouched((prevTouched) => ({ ...prevTouched, [name]: true }));
   };
 
-  // Handle input blur (validates when leaving the field)
+  
   const handleBlur = (e) => {
     const { name, value } = e.target;
 
@@ -88,14 +88,14 @@ const Signup = ({ setPage }) => {
       [name]: true,
     }));
 
-    // Validate immediately when the user moves to another field
+   
     setErrors((prevErrors) => ({
       ...prevErrors,
       [name]: validateField(name, value),
     }));
   };
 
-  // Handle form submission
+  
   const handleSignup = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -105,9 +105,7 @@ const Signup = ({ setPage }) => {
     try {
       const { confirmPassword, ...signupData } = formData;
       const response = await axios.post(
-        "http://localhost:5000/api/signup",
-        signupData
-      );
+        "http://localhost:5000/api/signup", signupData );
 
       alert(response.data.message);
       setPage("login");

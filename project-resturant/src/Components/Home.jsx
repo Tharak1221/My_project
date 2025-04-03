@@ -1,140 +1,143 @@
 
-// import React, { useEffect } from "react";
-// import { Navbar, Nav, Dropdown, Container, Button } from "react-bootstrap";
-// import {  FaUserCircle } from 'react-icons/fa';
-// import {jwtDecode} from "jwt-decode";
+// import React, { useEffect, useState } from "react";
+// import axios from "axios";
+// import { Container } from "react-bootstrap";
+// import { jwtDecode } from "jwt-decode";
+// import AppNavbar from "./Navbar";
+// import Sidebar from "./Sidebar";
 
-// useEffect(() => {
-//   const token = localStorage.getItem("token");
+// const Home = ({ user, setUser, setPage }) => {
+//   const [loading, setLoading] = useState(true);
+//   const [selectedRoles, setSelectedRoles] = useState([]);
 
-//   if (token) {
+//   useEffect(() => {
+//     const token = localStorage.getItem("token");
+
+//     if (!token) {
+//       setPage("login");
+//       return;
+//     }
+
 //     const decodedToken = jwtDecode(token);
-//     const currentTime = Date.now() / 1000; // Convert to seconds
+//     const currentTime = Date.now() / 1000;
 
 //     if (decodedToken.exp < currentTime) {
-//       // Token expired
-//       alert("Session expired. Please log in again.");
-//       localStorage.removeItem("token"); // Remove expired token
-//       setPage("/login"); // Redirect to login page
+//       localStorage.removeItem("token");
+//       setPage("login");
+//       return;
 //     }
-//   } else {
-//     // No token found, redirect to login
-//     setPage("/login");
-//   }
-// }, [setPage]);
-// const Home = ({ user, setPage }) => {
+
+//     axios
+//       .get("http://localhost:5000/api/userdetails", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       })
+//       .then((response) => {
+//         setUser(response.data.data);
+//         setLoading(false);
+//       })
+//       .catch(() => {
+//         localStorage.removeItem("token");
+//         setPage("login");
+//       });
+//   }, [setUser, setPage]);
+
 //   const handleLogout = () => {
+//     localStorage.removeItem("token");
+//     setUser(null);
 //     setPage("login");
-//      // ✅ Redirect to Login on logout
 //   };
+
+//   if (loading) {
+//     return <p>Loading user details...</p>;
+//   }
 
 //   return (
 //     <div>
-     
-//       <Navbar bg="dark" variant="dark" expand="lg">
-//         <Container>
-//           <Navbar.Brand>Restaurant Dashboard</Navbar.Brand>
-//           <Nav className="ms-auto">
-//             <Dropdown>
-
-//               <Dropdown.Toggle variant="secondary" id="profile-dropdown">
-//               <FaUserCircle style={{ marginRight: '8px' }} />{user?.username || "Profile"}           
-//               </Dropdown.Toggle>
-//               <Dropdown.Menu align="end">
-//                 <Dropdown.Item disabled><strong>{user?.name}</strong></Dropdown.Item>
-                
-//                 <Dropdown.Divider />
-                
-//                 <Dropdown.Item>Username: {user?.username}</Dropdown.Item>
-//                 <Dropdown.Item>Email: {user?.email}</Dropdown.Item>
-//                 <Dropdown.Item>Phone: {user?.phone}</Dropdown.Item>
-//                 <Dropdown.Divider />
-//                 <Dropdown.Item>
-//                   <Button variant="danger" size="sm" onClick={handleLogout}>Logout</Button>
-//                 </Dropdown.Item>
-//               </Dropdown.Menu>
-//             </Dropdown>
-//           </Nav>
-//         </Container>
-//       </Navbar>
-
-//       {/* ✅ Dashboard Content */}
+//       <AppNavbar user={user} handleLogout={handleLogout} />
+//       <Sidebar selectedRoles={selectedRoles} setSelectedRoles={setSelectedRoles} />
 //       <Container className="mt-5">
 //         <h2>Welcome, {user?.name}!</h2>
 //         <p>This is your restaurant management dashboard.</p>
-//         {/* Add more dashboard features here */}
+//         <p>Selected Roles: {selectedRoles.join(", ") || "None"}</p>
+//         <Button variant="primary" onClick={fetchUserDetails} className="mt-3">
+//           Refresh
+//         </Button>
 //       </Container>
 //     </div>
 //   );
 // };
 
 // export default Home;
-import React, { useEffect } from "react";
-import { Navbar, Nav, Dropdown, Container, Button } from "react-bootstrap";
-import { FaUserCircle } from "react-icons/fa";
+import React, { useEffect, useState, useCallback } from "react";
+import axios from "axios";
+import { Container, Button } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
+import AppNavbar from "./Navbar";
+import Sidebar from "./Sidebar";
 
-const Home = ({ user, setPage }) => {
-  useEffect(() => {
+const Home = ({ user, setUser, setPage }) => {
+  const [loading, setLoading] = useState(true);
+  const [selectedRoles, setSelectedRoles] = useState([]);
+
+ 
+  const fetchUserDetails = useCallback(() => {
     const token = localStorage.getItem("token");
 
-    if (token) {
-      const decodedToken = jwtDecode(token);
-      const currentTime = Date.now() / 1000; // Convert to seconds
-
-      if (decodedToken.exp < currentTime) {
-        // Token expired
-        alert("Session expired. Please log in again.");
-        localStorage.removeItem("token"); // Remove expired token
-        setPage("login"); // Redirect to login page
-      }
-    } else {
-      // No token found, redirect to login
+    if (!token) {
       setPage("login");
+      return;
     }
-  }, [setPage]);
+
+    const decodedToken = jwtDecode(token);
+    const currentTime = Date.now() / 1000;
+
+    if (decodedToken.exp < currentTime) {
+      localStorage.removeItem("token");
+      setPage("login");
+      return;
+    }
+
+    axios
+      .get("http://localhost:5000/api/userdetails", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setUser(response.data.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        localStorage.removeItem("token");
+        setPage("login");
+      });
+  }, [setUser, setPage]); 
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, [fetchUserDetails]); 
 
   const handleLogout = () => {
-    localStorage.removeItem("token"); // ✅ Clear token
-    setPage("login"); // ✅ Redirect to Login on logout
+    localStorage.removeItem("token");
+    setUser(null);
+    setPage("login");
   };
+
+  if (loading) {
+    return <p>Loading user details...</p>;
+  }
 
   return (
     <div>
-      <Navbar bg="dark" variant="dark" expand="lg">
-        <Container>
-          <Navbar.Brand>Restaurant Dashboard</Navbar.Brand>
-          <Nav className="ms-auto">
-            <Dropdown>
-              <Dropdown.Toggle variant="secondary" id="profile-dropdown">
-                <FaUserCircle style={{ marginRight: "8px" }} />
-                {user?.username || "Profile"}
-              </Dropdown.Toggle>
-              <Dropdown.Menu align="end">
-                <Dropdown.Item disabled>
-                  <strong>{user?.name}</strong>
-                </Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Item>Username: {user?.username}</Dropdown.Item>
-                <Dropdown.Item>Email: {user?.email}</Dropdown.Item>
-                <Dropdown.Item>Phone: {user?.phone}</Dropdown.Item>
-                <Dropdown.Divider />
-                <Dropdown.Item>
-                  <Button variant="danger" size="sm" onClick={handleLogout}>
-                    Logout
-                  </Button>
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
-          </Nav>
-        </Container>
-      </Navbar>
-
-     
+      <AppNavbar user={user} handleLogout={handleLogout} />
+      <Sidebar selectedRoles={selectedRoles} setSelectedRoles={setSelectedRoles} />
       <Container className="mt-5">
         <h2>Welcome, {user?.name}!</h2>
         <p>This is your restaurant management dashboard.</p>
-       
+        <p>Selected Roles: {selectedRoles.join(", ") || "None"}</p>
+
+        
+        <Button variant="primary" onClick={fetchUserDetails} className="mt-3">
+          Refresh
+        </Button>
       </Container>
     </div>
   );
