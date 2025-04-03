@@ -1,29 +1,43 @@
-import { useState } from 'react';
-import Signup from './Components/Signup';
-import Login from './Components/Login';
-import Home from './Components/Home';
+// import React, { useState } from "react";
+// import Signup from "./Components/Signup";
+// import Login from "./Components/Login";
+// import Home from "./Components/Home";
 
-const App = () => {
-  const [page, setPage] = useState('signup'); 
+// function App() {
+//   const [page, setPage] = useState("login");
+//   const [user, setUser] = useState(null);
 
-  const renderPage = () => {
-    switch (page) {
-      case 'signup':
-        return <Signup setPage={setPage} />;
-      case 'login':
-        return <Login setPage={setPage} />;
-      case 'home':
-        return <Home setPage={setPage} />;
-      default:
-        return <Signup setPage={setPage} />;
-    }
-  };
+//   console.log("Current Page:", page);
+
+//   return (
+//     <div className="container">
+//       {page === "signup" && <Signup setPage={setPage} />}
+//       {page === "login" && <Login setPage={setPage} setUser={setUser} />}
+//       {page === "home" && <Home user={user}  setPage={setPage} />}
+//     </div>
+//   );
+// }
+
+// export default App;
+import React, { useState } from "react";
+import Signup from "./Components/Signup";
+import Login from "./Components/Login";
+import Home from "./Components/Home";
+
+function App() {
+  const [page, setPage] = useState("login");
+  const [user, setUser] = useState(null);
+
+  console.log("Current Page:", page);
+  console.log("User:", user); // Debugging
 
   return (
-    <div style={{ textAlign: 'center', padding: '20px', minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
-      {renderPage()}
+    <div className="container">
+      {page === "signup" && <Signup setPage={setPage} />}
+      {page === "login" && <Login setPage={setPage} setUser={setUser} />}
+      {page === "home" && <Home user={user} setUser={setUser} setPage={setPage} />}
     </div>
   );
-};
+}
 
 export default App;

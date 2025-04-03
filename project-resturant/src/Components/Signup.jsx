@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import "./Main.css"; 
+import axios from "axios";
+import Input from "./Input";
+import { validations } from "./validations";
 
 const Signup = ({ setPage }) => {
   const [formData, setFormData] = useState({
@@ -11,115 +13,160 @@ const Signup = ({ setPage }) => {
     phone: "",
   });
 
-  const [errors, setErrors] = useState({}); // Holds validation errors
-  const [touched, setTouched] = useState({}); // Tracks if field has been interacted with
-  const [showTooltip, setShowTooltip] = useState({}); // Controls tooltip visibility
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  // useEffect(() => {
+  //   axios
+  //     .get("http://localhost:5000/userdetails")
+  //     .then((response) => console.log("Fetched data:", response.data))
+  //     .catch((error) => console.error("Error fetching data:", error));
+  // }, []);
 
-    // Remove error when user types
-    setErrors({ ...errors, [e.target.name]: "" });
-  };
+  // Validate a single field
+  const validateField = (name, value, currentFormData = formData) => {
+    if (validations[name]) {
+      const validationResult =
+        name === "confirmPassword"
+          ? validations[name](currentFormData.password, value)
+          : validations[name](value);
 
-  const handleBlur = (e) => {
-    setTouched({ ...touched, [e.target.name]: true }); // Mark field as touched
-  };
-
-  const handleMouseEnter = (field) => {
-    if (errors[field]) {
-      setShowTooltip({ ...showTooltip, [field]: true }); // Show tooltip if there's an error
+      return validationResult.isValid ? "" : validationResult.message;
     }
+    return "";
   };
 
-  const handleMouseLeave = (field) => {
-    setShowTooltip({ ...showTooltip, [field]: false }); // Hide tooltip
-  };
-
-  const validate = () => {
-    let newErrors = {};
-
-    if (!formData.name) newErrors.name = "Name is required";
-    if (!formData.username) newErrors.username = "Username is required";
-    if (!/^[a-zA-Z0-9]+([._%+-]?[a-zA-Z0-9]+)*@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
-      newErrors.email = "Invalid email format";
-    }
-    
-    if (formData.password.length < 6)
-      newErrors.password = "Password must be at least 6 characters";
-    if (formData.password !== formData.confirmPassword)
-      newErrors.confirmPassword = "Passwords do not match";
-    if (!/^[6-9]\d{9}$/.test(formData.phone))
-      newErrors.phone = "Phone number must start with 6-9 and be 10 digits";
-    
+  
+  const validateForm = () => {
+    const newErrors = {};
+    Object.entries(formData).forEach(([key, value]) => {
+      const error = validateField(key, value);
+      if (error) newErrors[key] = error;
+    });
 
     setErrors(newErrors);
+    setTouched((prevTouched) => {
+      const allTouched = {};
+      Object.keys(formData).forEach((key) => {
+        allTouched[key] = true;
+      });
+      return allTouched;
+    });
+
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignup = (e) => {
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prevData) => {
+      const newData = { ...prevData, [name]: value };
+
+    
+      if (touched[name]) {
+        setErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: validateField(name, value, newData),
+        }));
+      }
+
+      return newData;
+    });
+
+    setTouched((prevTouched) => ({ ...prevTouched, [name]: true }));
+  };
+
+  
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+
+    setTouched((prevTouched) => ({
+      ...prevTouched,
+      [name]: true,
+    }));
+
+   
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: validateField(name, value),
+    }));
+  };
+
+  
+  const handleSignup = async (e) => {
     e.preventDefault();
-    if (!validate()) return; // Stop if validation fails
+    if (!validateForm()) return;
 
-    localStorage.setItem(
-      "userDetails",
-      JSON.stringify({
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-      })
-    );
+    setIsSubmitting(true);
 
-    setTimeout(() => setPage("login"), 2000);
+    try {
+      const { confirmPassword, ...signupData } = formData;
+      const response = await axios.post(
+        "http://localhost:5000/api/signup", signupData );
+
+      alert(response.data.message);
+      setPage("login");
+    } catch (error) {
+      console.error(
+        "Error signing up:",
+        error.response?.data?.message || "Signup failed"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="container" style={{ maxWidth: "400px", marginTop: "50px" }}>
       <h2 className="mb-4 text-center">Sign Up</h2>
-
       <form
         onSubmit={handleSignup}
         className="p-3 border rounded shadow bg-white"
       >
         {[
-          { label: "Name", name: "name", type: "text" },
-          { label: "Username", name: "username", type: "text" },
-          { label: "Email", name: "email", type: "email" },
-          { label: "Password", name: "password", type: "password" },
-          { label: "Confirm Password", name: "confirmPassword", type: "password" },
-          { label: "Phone Number", name: "phone", type: "tel" },
-        ].map(({ label, name, type }) => (
-          <div className="mb-3 position-relative" key={name}>
-            <label className="form-label">{label}</label>
-
-            
-            <input
+          { name: "name", type: "text", placeholder: "Full Name" },
+          { name: "username", type: "text", placeholder: "Username" },
+          { name: "email", type: "email", placeholder: "Email Address" },
+          { name: "password", type: "password", placeholder: "Password" },
+          {
+            name: "confirmPassword",
+            type: "password",
+            placeholder: "Confirm Password",
+          },
+          { name: "phone", type: "tel", placeholder: "Phone Number" },
+        ].map(({ name, type, placeholder }) => (
+          <div key={name} className="mb-2 position-relative">
+            <Input
               type={type}
               name={name}
-              className={`form-control ${errors[name] && touched[name] ? "input-error" : ""}`} // Apply red border if error
-              placeholder={touched[name] && errors[name] ? errors[name] : `Enter your ${label.toLowerCase()}`} // Show error inside input
               value={formData[name]}
+              placeholder={placeholder}
               onChange={handleChange}
-              onBlur={handleBlur}       
-              onMouseEnter={() => handleMouseEnter(name)} 
-              onMouseLeave={() => handleMouseLeave(name)} 
+              onBlur={handleBlur}
+              className={`form-control ${
+                touched[name] && errors[name] ? "is-invalid" : ""
+              }`}
             />
-
-           
-            {showTooltip[name] && errors[name] && (
-              <div className="tooltip-error">{errors[name]}</div>
+            {touched[name] && errors[name] && (
+              <div className="invalid-feedback" style={{ display: "block" }}>
+                {errors[name]}
+              </div>
             )}
           </div>
         ))}
-
-        <button type="submit" className="btn btn-success w-100">
-          Sign Up
+        <button type="submit" className="btn btn-success w-100" disabled={isSubmitting}>
+          {isSubmitting ? "Signing Up..." : "Sign Up"}
         </button>
       </form>
-
       <p className="mt-3 text-center">
         Already have an account?{" "}
-        <button className="btn btn-link p-0" onClick={() => setPage("login")}>
+        <button
+          className="btn btn-link p-0 align-baseline"
+          onClick={() => setPage("login")}
+        >
           Login
         </button>
       </p>

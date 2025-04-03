@@ -1,87 +1,113 @@
 const express = require("express");
-const mysql = require("mysql2");
+const mysql = require("mysql");
 const cors = require("cors");
-const bcrypt = require("bcrypt");
 const bodyParser = require("body-parser");
- 
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const errorHandler = require("./errorHandler");
+
 const app = express();
+const PORT = 5000;
+const SECRET_KEY = "your_secret_key";
+
 app.use(cors());
 app.use(bodyParser.json());
- 
-// ✅ MySQL Connection
+
 const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "Tharak@2001", // Change if needed
-    database: "resturant"
+  host: "localhost",
+  user: "root",
+  password: "Tharak@2001",
+  database: "resturant",
 });
- 
-db.connect(err => {
-    if (err) {
-        console.error("Error connecting to database:", err);
-        return;
-    }
-    console.log("✅ Connected to MySQL database.");
+
+db.connect((err) => {
+  if (err) {
+    console.error("Database connection failed:", err);
+    return;
+  }
+  console.log("Connected to MySQL database.");
 });
- 
-// ✅ Register API - Hash Password
-app.post("/register", async (req, res) => {
-    const { username, password } = req.body;
- 
-    if (!username || !password) {
-        return res.status(400).json({ message: "Username and Password are required" });
-    }
- 
-    try {
-        // 🔒 Hash password before saving
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
- 
-        const sql = "INSERT INTO userdetails (username, password) VALUES (?, ?)";
-        db.query(sql, [username, hashedPassword], (err, result) => {
-            if (err) {
-                return res.status(500).json({ message: "Database error", error: err });
-            }
-            res.json({ success: true, message: "User registered successfully" });
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Error encrypting password", error });
-    }
-});
- 
-// ✅ Login API - Compare Encrypted Password
-app.post("/login", (req, res) => {
-    const { username, password } = req.body;
- 
-    if (!username || !password) {
-        return res.status(400).json({ message: "Username and Password are required" });
-    }
- 
-    const sql = "SELECT * FROM userdetails WHERE username = ?";
-    db.query(sql, [username], async (err, results) => {
-        if (err) {
-            return res.status(500).json({ message: "Database error", error: err });
+
+// 📝 Signup API
+app.post("/api/signup", (req, res) => {
+  const { name, username, email, password, phone } = req.body;
+
+  if (!name || !username || !email || !password || !phone) {
+    return errorHandler.badRequest(res, "All fields are required");
+  }
+
+  db.query("SELECT id FROM userdetails WHERE email = ? OR username = ?", [email, username], (err, results) => {
+    if (err) return errorHandler.serverError(res, "Database error");
+    if (results.length > 0) return errorHandler.badRequest(res, "User already exists");
+
+    bcrypt.hash(password, 10, (err, hashedPassword) => {
+      if (err) return errorHandler.serverError(res, "Error hashing password");
+
+      db.query(
+        "INSERT INTO userdetails (name, username, email, password, phone) VALUES (?, ?, ?, ?, ?)",
+        [name, username, email, hashedPassword, phone],
+        (err) => {
+          if (err) return errorHandler.serverError(res, "Error inserting user data");
+          return errorHandler.success(res, "Signup successful!", null, 201);
         }
- 
-        if (results.length > 0) {
-            const user = results[0];
- 
-            // 🔒 Compare entered password with stored hashed password
-            const isMatch = await bcrypt.compare(password, user.password);
- 
-            if (isMatch) {
-                res.json({ success: true, message: "Login successful", user: { id: user.id, username: user.username } });
-            } else {
-                res.status(401).json({ success: false, message: "Invalid username or password" });
-            }
-        } else {
-            res.status(401).json({ success: false, message: "Invalid username or password" });
-        }
+      );
     });
+  });
 });
- 
-// ✅ Start Server
-const PORT = 5000;
+
+// 📝 Login API
+app.post("/api/login", (req, res) => {
+  const { identifier, password } = req.body;
+
+  if (!identifier || !password) {
+    return errorHandler.badRequest(res, "All fields are required");
+  }
+
+  db.query("SELECT * FROM userdetails WHERE username = ? OR email = ?", [identifier, identifier], (err, results) => {
+    if (err) return errorHandler.serverError(res, "Database error");
+    if (results.length === 0) return errorHandler.notFound(res, "Invalid username or email");
+
+    const user = results[0];
+
+    bcrypt.compare(password, user.password, (err, isMatch) => {
+      if (err || !isMatch) return errorHandler.unauthorized(res, "Incorrect password");
+
+      const token = jwt.sign(
+        { id: user.id, username: user.username, email: user.email },
+        SECRET_KEY,
+        { expiresIn: "1h" }
+      );
+
+      return errorHandler.success(res, "Login successful!", { token, user }, 200);
+    });
+  });
+});
+
+// 🛡️ Token Verification Middleware
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) return errorHandler.forbidden(res, "No token provided");
+
+  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+    if (err) return errorHandler.unauthorized(res, "Unauthorized: Invalid token");
+
+    req.user = decoded;
+    next();
+  });
+};
+
+// 📝 Get User Details API
+app.get("/api/userdetails", verifyToken, (req, res) => {
+  db.query("SELECT id, name, username, email, phone FROM userdetails WHERE id = ?", [req.user.id], (err, results) => {
+    if (err) return errorHandler.serverError(res, "Database error");
+    if (results.length === 0) return errorHandler.notFound(res, "User not found");
+
+    return errorHandler.success(res, "User details retrieved successfully!", results[0], 200);
+  });
+});
+
+// 🚀 Start Server
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

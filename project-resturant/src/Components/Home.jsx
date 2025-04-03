@@ -1,97 +1,145 @@
-import React, { useState } from 'react';
-import { Navbar, Nav, Container, Col, Card, Button, Form } from 'react-bootstrap';
-import { FaPizzaSlice, FaHamburger, FaFish, FaDrumstickBite, FaIceCream, FaMugHot } from 'react-icons/fa';
 
-const Home = ({ setPage }) => {
-  const [selectedSection, setSelectedSection] = useState("Restaurant Details");
-  const [selectedFood, setSelectedFood] = useState("");
-  const [Menu, setMenu] = useState(false);
+// import React, { useEffect, useState } from "react";
+// import axios from "axios";
+// import { Container } from "react-bootstrap";
+// import { jwtDecode } from "jwt-decode";
+// import AppNavbar from "./Navbar";
+// import Sidebar from "./Sidebar";
+
+// const Home = ({ user, setUser, setPage }) => {
+//   const [loading, setLoading] = useState(true);
+//   const [selectedRoles, setSelectedRoles] = useState([]);
+
+//   useEffect(() => {
+//     const token = localStorage.getItem("token");
+
+//     if (!token) {
+//       setPage("login");
+//       return;
+//     }
+
+//     const decodedToken = jwtDecode(token);
+//     const currentTime = Date.now() / 1000;
+
+//     if (decodedToken.exp < currentTime) {
+//       localStorage.removeItem("token");
+//       setPage("login");
+//       return;
+//     }
+
+//     axios
+//       .get("http://localhost:5000/api/userdetails", {
+//         headers: { Authorization: `Bearer ${token}` },
+//       })
+//       .then((response) => {
+//         setUser(response.data.data);
+//         setLoading(false);
+//       })
+//       .catch(() => {
+//         localStorage.removeItem("token");
+//         setPage("login");
+//       });
+//   }, [setUser, setPage]);
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("token");
+//     setUser(null);
+//     setPage("login");
+//   };
+
+//   if (loading) {
+//     return <p>Loading user details...</p>;
+//   }
+
+//   return (
+//     <div>
+//       <AppNavbar user={user} handleLogout={handleLogout} />
+//       <Sidebar selectedRoles={selectedRoles} setSelectedRoles={setSelectedRoles} />
+//       <Container className="mt-5">
+//         <h2>Welcome, {user?.name}!</h2>
+//         <p>This is your restaurant management dashboard.</p>
+//         <p>Selected Roles: {selectedRoles.join(", ") || "None"}</p>
+//         <Button variant="primary" onClick={fetchUserDetails} className="mt-3">
+//           Refresh
+//         </Button>
+//       </Container>
+//     </div>
+//   );
+// };
+
+// export default Home;
+import React, { useEffect, useState, useCallback } from "react";
+import axios from "axios";
+import { Container, Button } from "react-bootstrap";
+import { jwtDecode } from "jwt-decode";
+import AppNavbar from "./Navbar";
+import Sidebar from "./Sidebar";
+
+const Home = ({ user, setUser, setPage }) => {
+  const [loading, setLoading] = useState(true);
+  const [selectedRoles, setSelectedRoles] = useState([]);
+
+ 
+  const fetchUserDetails = useCallback(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setPage("login");
+      return;
+    }
+
+    const decodedToken = jwtDecode(token);
+    const currentTime = Date.now() / 1000;
+
+    if (decodedToken.exp < currentTime) {
+      localStorage.removeItem("token");
+      setPage("login");
+      return;
+    }
+
+    axios
+      .get("http://localhost:5000/api/userdetails", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setUser(response.data.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        localStorage.removeItem("token");
+        setPage("login");
+      });
+  }, [setUser, setPage]); 
+
+  useEffect(() => {
+    fetchUserDetails();
+  }, [fetchUserDetails]); 
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    sessionStorage.removeItem("authToken");
-    setPage("login"); 
+    localStorage.removeItem("token");
+    setUser(null);
+    setPage("login");
   };
 
-  const handleFoodSelection = (event) => {
-    setSelectedFood(event.target.value);
-  };
+  if (loading) {
+    return <p>Loading user details...</p>;
+  }
 
   return (
-    <>
-      
-      <Navbar bg="dark" variant="dark" expand="lg">
-        <Container>
-          <Navbar.Brand style={{ fontWeight: "bold", color: "White", fontSize: "1.5rem",backgroundColor:"darkblue" }}>SR Restaurant</Navbar.Brand>
-          <Navbar.Toggle aria-controls="basic-navbar-nav" />
-          <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="ms-auto">
-              <Button variant="link" className="nav-link text-light" onClick={handleLogout}>Logout</Button>
-            </Nav>
-          </Navbar.Collapse>
-        </Container>
-      </Navbar>
+    <div>
+      <AppNavbar user={user} handleLogout={handleLogout} />
+      <Sidebar selectedRoles={selectedRoles} setSelectedRoles={setSelectedRoles} />
+      <Container className="mt-5">
+        <h2>Welcome, {user?.name}!</h2>
+        <p>This is your restaurant management dashboard.</p>
+        <p>Selected Roles: {selectedRoles.join(", ") || "None"}</p>
 
-      {/* Main Container */}
-      <Container fluid className="mt-4 d-flex">
-        {/* Sidebar */}
-        <Col md={2} className="bg-light p-3 border-end">
-          <Button variant="primary" className="w-100 mb-3" onClick={() => setMenu(!Menu)}>
-            {Menu ? "Hide Menu" : "Menu"}
-          </Button>
-          {Menu && (
-            <Form>
-              <ul className="list-unstyled">
-                {["Restaurant Details", "Order Management", "Menu Management", "Food Menu"].map((option) => (
-                  <li key={option}>
-                    <input
-                      type="radio"
-                      name="menu-options"
-                      checked={selectedSection === option}
-                      onChange={() => setSelectedSection(option)}
-                    /> {option}
-                  </li>
-                ))}
-              </ul>
-            </Form>
-          )}
-        </Col>
-
-        {/* Main Content */}
-        <Col md={10} className="p-4">
-          <h1 className="text-center mb-4">{selectedSection}</h1>
-
-          {/* Food Menu Section */}
-          {selectedSection === "Food Menu" && (
-            <Card>
-              <Card.Body>
-                <Card.Title>Food Menu</Card.Title>
-                <div>
-                  {[  
-                    { icon: <FaPizzaSlice />, name: "Pizza" },
-                    { icon: <FaHamburger />, name: "Burgers" },
-                    { icon: <FaFish />, name: "Seafood" },
-                    { icon: <FaDrumstickBite />, name: "Chicken Dishes" },
-                    { icon: <FaIceCream />, name: "Desserts" },
-                    { icon: <FaMugHot />, name: "Beverages" }
-                  ].map((item) => (
-                    <div key={item.name} className="mb-2">
-                      <input 
-                        type="radio" 
-                        name="food" 
-                        value={item.name} 
-                        checked={selectedFood === item.name} 
-                        onChange={handleFoodSelection} 
-                      /> {item.icon} {item.name}
-                    </div>
-                  ))}
-                </div>
-              </Card.Body>
-            </Card>
-          )}
-        </Col>
+        
+        <Button variant="primary" onClick={fetchUserDetails} className="mt-3">
+          Refresh
+        </Button>
       </Container>
-    </>
+    </div>
   );
 };
 
