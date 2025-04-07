@@ -23,6 +23,8 @@ import React, { useState } from "react";
 import Signup from "./Components/Signup";
 import Login from "./Components/Login";
 import Home from "./Components/Home";
+import "antd/dist/reset.css";
+
 
 function App() {
   const [page, setPage] = useState("login");

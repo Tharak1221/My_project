@@ -1,16 +1,18 @@
 
-// import React, { useEffect, useState } from "react";
+// import React, { useEffect, useState, useCallback } from "react";
 // import axios from "axios";
 // import { Container } from "react-bootstrap";
 // import { jwtDecode } from "jwt-decode";
 // import AppNavbar from "./Navbar";
-// import Sidebar from "./Sidebar";
+// import Footer from "./Footer";
+// import { FaSync } from "react-icons/fa";
+// // import HomeImage from "./Home.png";
 
 // const Home = ({ user, setUser, setPage }) => {
 //   const [loading, setLoading] = useState(true);
-//   const [selectedRoles, setSelectedRoles] = useState([]);
+//   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-//   useEffect(() => {
+//   const fetchUserDetails = useCallback(() => {
 //     const token = localStorage.getItem("token");
 
 //     if (!token) {
@@ -41,6 +43,10 @@
 //       });
 //   }, [setUser, setPage]);
 
+//   useEffect(() => {
+//     fetchUserDetails();
+//   }, [fetchUserDetails]);
+
 //   const handleLogout = () => {
 //     localStorage.removeItem("token");
 //     setUser(null);
@@ -52,34 +58,51 @@
 //   }
 
 //   return (
-//     <div>
-//       <AppNavbar user={user} handleLogout={handleLogout} />
-//       <Sidebar selectedRoles={selectedRoles} setSelectedRoles={setSelectedRoles} />
+//     <div
+//       // style={{
+//       //   backgroundImage: sidebarOpen ? "none" : `url(${""})`,
+//       //   backgroundSize: "cover",
+//       //   backgroundPosition: "center",
+//       //   backgroundRepeat: "no-repeat",
+//       //   minHeight: "100vh",
+//       //   width: "100vw",
+//       //   display: "flex",
+//       //   flexDirection: "column",
+//       // }}
+//     >
+//       <button
+//         variant="primary"
+//         onClick={fetchUserDetails}
+//         style={{ marginTop: "20px", display: "flex", alignItems: "center" }}
+//       >
+//         <FaSync size={20} />
+//       </button>
+      
+//       <AppNavbar user={user} handleLogout={handleLogout} setPage={setPage} setSidebarOpen={setSidebarOpen} />
+
 //       <Container className="mt-5">
 //         <h2>Welcome, {user?.name}!</h2>
-//         <p>This is your restaurant management dashboard.</p>
-//         <p>Selected Roles: {selectedRoles.join(", ") || "None"}</p>
-//         <Button variant="primary" onClick={fetchUserDetails} className="mt-3">
-//           Refresh
-//         </Button>
 //       </Container>
+      
+//       <Footer />
 //     </div>
 //   );
 // };
 
 // export default Home;
+
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-import { Container, Button } from "react-bootstrap";
+import { Container } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import AppNavbar from "./Navbar";
-import Sidebar from "./Sidebar";
+import Footer from "./Footer";
+// import { FaSync } from "react-icons/fa";
 
 const Home = ({ user, setUser, setPage }) => {
   const [loading, setLoading] = useState(true);
-  const [selectedRoles, setSelectedRoles] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
- 
   const fetchUserDetails = useCallback(() => {
     const token = localStorage.getItem("token");
 
@@ -109,11 +132,11 @@ const Home = ({ user, setUser, setPage }) => {
         localStorage.removeItem("token");
         setPage("login");
       });
-  }, [setUser, setPage]); 
+  }, [setUser, setPage]);
 
   useEffect(() => {
     fetchUserDetails();
-  }, [fetchUserDetails]); 
+  }, [fetchUserDetails]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -122,23 +145,42 @@ const Home = ({ user, setUser, setPage }) => {
   };
 
   if (loading) {
-    return <p>Loading user details...</p>;
+    return <p style={{ marginTop: "100px", textAlign: "center" }}>Loading user details...</p>;
   }
 
   return (
-    <div>
-      <AppNavbar user={user} handleLogout={handleLogout} />
-      <Sidebar selectedRoles={selectedRoles} setSelectedRoles={setSelectedRoles} />
-      <Container className="mt-5">
-        <h2>Welcome, {user?.name}!</h2>
-        <p>This is your restaurant management dashboard.</p>
-        <p>Selected Roles: {selectedRoles.join(", ") || "None"}</p>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        backgroundColor: "#f8f9fa",
+      }}
+    >
+      {/* Navbar */}
+      <AppNavbar
+        user={user}
+        handleLogout={handleLogout}
+        setPage={setPage}
+        setSidebarOpen={setSidebarOpen}
+      />
 
-        
-        <Button variant="primary" onClick={fetchUserDetails} className="mt-3">
-          Refresh
-        </Button>
+      {/* Main Content */}
+      <Container className="mt-5">
+        <div className="d-flex justify-content-between align-items-center mb-4">
+          <h2>Welcome, {user?.name}!</h2>
+          {/* <Button variant="outline-primary" onClick={fetchUserDetails}>
+            <FaSync className="me-2" />
+            Refresh
+          </Button> */}
+        </div>
+
+        {/* Add your dashboard widgets or sections here */}
+        <p>This is your restaurant management dashboard.</p>
       </Container>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
